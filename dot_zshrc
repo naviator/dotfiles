@@ -119,6 +119,13 @@ if [ -f '/Users/namornik/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/namorn
 if [ -f '/Users/namornik/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/namornik/google-cloud-sdk/completion.zsh.inc'; fi
 
 source $HOME/.k9s_completion
-
 export PATH=$HOME/go/bin:$PATH
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  if [[ -d "/opt/homebrew/bin" ]]; then
+    export PATH="/opt/homebrew/bin:$PATH"
+  elif [[ -d "/usr/local/bin" ]]; then
+    export PATH="/usr/local/bin:$PATH"
+  fi
+fi
 
