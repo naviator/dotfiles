@@ -129,3 +129,42 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   fi
 fi
 
+# Function to merge kubeconfig files
+merge_kubeconfigs() {
+  local kubeconfig_files=()
+  local merged_kubeconfig=""
+
+  # Check for the "*.config" file first
+  local config_file="$HOME/.kube/config"
+  if [[ -f "$config_file" ]]; then
+    kubeconfig_files+=("$config_file")
+  fi
+
+  # Find all .config files in ~/.kube
+  while IFS= read -r file; do
+    kubeconfig_files+=("$file")
+  done < <(find "$HOME/.kube" -type f -name "*.config" -print0 | xargs -0)
+
+  # Check if any kubeconfig files were found
+  if [[ ${#kubeconfig_files[@]} -eq 0 ]]; then
+    return  # Exit if no files found
+  fi
+
+  # Merge the kubeconfig files
+  local first=true
+  for file in "${kubeconfig_files[@]}"; do
+    if $first; then
+      merged_kubeconfig="$file"
+      first=false
+    else
+      merged_kubeconfig="$merged_kubeconfig:$file"
+    fi
+  done
+
+  # Set the KUBECONFIG environment variable
+  export KUBECONFIG="$merged_kubeconfig"
+}
+
+# Call the merge_kubeconfigs function
+merge_kubeconfigs
+
