@@ -131,6 +131,11 @@ fi
 
 # Function to merge kubeconfig files
 merge_kubeconfigs() {
+
+  if [ ! -d "$HOME/.kube" ]; then
+    return
+  fi
+
   local kubeconfig_files=()
   local merged_kubeconfig=""
 
