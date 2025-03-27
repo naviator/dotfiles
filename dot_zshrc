@@ -136,38 +136,23 @@ merge_kubeconfigs() {
     return
   fi
 
-  local kubeconfig_files=()
-  local merged_kubeconfig=""
+  local kubeconfig_files=""
 
   # Check for the "*.config" file first
   local config_file="$HOME/.kube/config"
   if [[ -f "$config_file" ]]; then
-    kubeconfig_files+=("$config_file")
+    kubeconfig_files="$config_file:"
   fi
 
-  # Find all .config files in ~/.kube
-  while IFS= read -r file; do
-    kubeconfig_files+=("$file")
-  done < <(find "$HOME/.kube" -type f -name "*.config" -print0 | xargs -0)
+  # Find all .config files in ~/.kube and append them to the string
+  kubeconfig_files+="$(find "$HOME/.kube" -type f -name "*.config" -print0 | xargs -0 -I {} echo -n "{}:")"
 
-  # Check if any kubeconfig files were found
-  if [[ ${#kubeconfig_files[@]} -eq 0 ]]; then
-    return  # Exit if no files found
+  # Remove the trailing colon if the string is not empty
+  if [[ -n "$kubeconfig_files" ]]; then
+    export KUBECONFIG="${kubeconfig_files::-1}"
+  else
+    unset KUBECONFIG
   fi
-
-  # Merge the kubeconfig files
-  local first=true
-  for file in "${kubeconfig_files[@]}"; do
-    if $first; then
-      merged_kubeconfig="$file"
-      first=false
-    else
-      merged_kubeconfig="$merged_kubeconfig:$file"
-    fi
-  done
-
-  # Set the KUBECONFIG environment variable
-  export KUBECONFIG="$merged_kubeconfig"
 }
 
 # Call the merge_kubeconfigs function
