@@ -113,10 +113,10 @@ source $ZSH/oh-my-zsh.sh
 export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
 
 # The next line updates PATH for the Google Cloud SDK.
-if [ -f '/Users/namornik/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/namornik/google-cloud-sdk/path.zsh.inc'; fi
+if [ -f '$HOME/google-cloud-sdk/path.zsh.inc' ]; then . '$HOME/google-cloud-sdk/path.zsh.inc'; fi
 
 # The next line enables shell command completion for gcloud.
-if [ -f '/Users/namornik/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/namornik/google-cloud-sdk/completion.zsh.inc'; fi
+if [ -f '$HOME/google-cloud-sdk/completion.zsh.inc' ]; then . '$HOME/google-cloud-sdk/completion.zsh.inc'; fi
 
 source $HOME/.k9s_completion
 export PATH=$HOME/go/bin:$PATH
@@ -145,7 +145,7 @@ merge_kubeconfigs() {
   fi
 
   # Find all .config files in ~/.kube and append them to the string
-  for file in "$HOME/.kube/"*.config; do
+  for file in $(find "$HOME/.kube/" -maxdepth 1 -name '*.config' -type f 2>/dev/null); do
     if [[ -f "$file" && "$file" != "$config_file" ]]; then
       kubeconfig_files+="$file:"
     fi
@@ -162,3 +162,6 @@ merge_kubeconfigs() {
 # Call the merge_kubeconfigs function
 merge_kubeconfigs
 
+if [[ -f "$HOME/.zshrc_local" ]]; then
+  source "$HOME/.zshrc_local"
+fi
