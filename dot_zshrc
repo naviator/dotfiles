@@ -145,8 +145,12 @@ merge_kubeconfigs() {
   fi
 
   # Find all .config files in ~/.kube and append them to the string
-  kubeconfig_files+="$(find "$HOME/.kube" -type f -name "*.config" -print0 | xargs -0 -I {} echo -n "{}:")"
-
+  for file in "$HOME/.kube/"*.config; do
+    if [[ -f "$file" && "$file" != "$config_file" ]]; then
+      kubeconfig_files+="$file:"
+    fi
+  done
+  
   # Remove the trailing colon if the string is not empty
   if [[ -n "$kubeconfig_files" ]]; then
     export KUBECONFIG="${kubeconfig_files::-1}"
