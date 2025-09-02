@@ -162,6 +162,37 @@ merge_kubeconfigs() {
 # Call the merge_kubeconfigs function
 merge_kubeconfigs
 
+k8s-context() {
+  # Start SOCKS proxy in background if not already running
+  if ! nc -z 127.0.0.1 $SOCKS_PORT 2>/dev/null; then
+    ssh -f -C -N -D $SOCKS_PORT $SSH_BASTION
+  fi
+
+  # Build KUBECONFIG from all sandbox kubeconfigs
+  local kubeconfigs
+  kubeconfigs=$(ls -1 "$HOME"/.kube/$ENVIRONMENT-*.config 2>/dev/null | tr '\n' ':' | sed 's/:$$//')
+  if [ -n "$kubeconfigs" ]; then
+    export KUBECONFIG="$kubeconfigs"
+  else
+    echo "⚠️ No $ENVIRONMENT kubeconfig files found in $HOME/.kube/"
+    return 1
+  fi
+
+  # Set proxy environment
+  export ALL_PROXY="socks5://127.0.0.1:$SOCKS_PORT"
+  export HTTP_PROXY="$ALL_PROXY"
+  export HTTPS_PROXY="$ALL_PROXY"
+
+  # Select the first context (ignoring the header) and set it as default
+  FIRST_CONTEXT=$(kubectl config get-contexts --no-headers -o name | head -n1)
+
+  if [ -n "$FIRST_CONTEXT" ]; then
+    kubectl config use-context "$FIRST_CONTEXT"
+  else
+    echo "No kubectl context found."
+  fi
+}
+
 if [[ -f "$HOME/.zshrc_local" ]]; then
   source "$HOME/.zshrc_local"
 fi
